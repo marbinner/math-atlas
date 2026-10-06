@@ -27,6 +27,15 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run check-math
+      - name: Cache-bust assets
+        # Pages serves files with max-age=600; versioned URLs make browsers refetch changed files.
+        run: |
+          cd site
+          for f in style.css app.js data.js; do
+            v=$(sha256sum "$f" | cut -c1-10)
+            sed -i "s|\"$f\"|\"$f?v=$v\"|" index.html
+          done
+          grep -o '[a-z]*\.\(css\|js\)?v=[0-9a-f]*' index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
