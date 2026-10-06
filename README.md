@@ -26,7 +26,7 @@ The site is live at https://marbinner.github.io/math-atlas/. Every push to `main
 
 ## Inline maths
 
-Prose fields can contain inline LaTeX between `$...$`, which the site renders with KaTeX. See `CLAUDE.md` for the markup conventions. So far only the Calculus entries (plus `scalar-condition-number`) are converted; the remaining ~3,800 prose fields with maths still use plain text.
+Prose fields can contain inline LaTeX between `$...$`, which the site renders with KaTeX. See `CLAUDE.md` for the markup conventions. All prose fields are marked up.
 
 ## Pages
 

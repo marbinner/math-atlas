@@ -43,7 +43,7 @@ Prose fields (intuition, conditions, example, pattern `why`, edge explanations, 
 - Wrap every mathematical expression in `$...$`, including lone variables (`$f$`, `$x$`) and short relations (`$x>0$`).
 - Inside `$...$` use LaTeX, not Unicode: `\neq`, `\le`, `\in`, `\alpha`, `x^2`, `x_0`, `f'`, `\mathbb{R}^n`, `\cdots`; function names as `\sin`, `\log`, `\exp`, `\det`, `\operatorname{diag}`.
 - Keep words and sentence punctuation outside the maths; leave bare numbers in running text as text; don't reword the prose.
-- Conversion status: only Calculus node fields (and `scalar-condition-number`) are done. Remaining: ~2,530 node prose fields in other fields, ~1,240 edge explanations, ~60 metaphor fields. Plan agreed with the user: convert in batches per field (parallel agents), validate with `npm run check-math`, and present one commit for review before pushing.
+- Conversion status: done for all prose fields. New or edited prose should follow these conventions; the CSV/xlsx/sqlite/graphml exports still hold the older plain-Unicode text.
 - When editing `atlas.json` programmatically, write it back with `json.dumps(..., ensure_ascii=False, indent=2)` to keep diffs minimal.
 
 ## Site architecture (`site/app.js`, one IIFE, no framework)
