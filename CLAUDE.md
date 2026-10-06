@@ -14,6 +14,7 @@ uv run scripts/build.py   # data/atlas.json -> site/data.js (always use uv for P
 
 - No server needed: open `site/index.html` directly (`data.js` sets `window.ATLAS`, so it works over `file://`). KaTeX and d3 load from cdnjs.
 - The map layout is cached in `.cache/layout.json`, keyed on entries, fields, links and `LAYOUT_VERSION`. A fresh layout takes ~1 minute; a cached build takes under 1s. **Bump `LAYOUT_VERSION` in `scripts/build.py` whenever layout code or parameters change**, or the stale cache is silently reused.
+- Deploy: pushing to `main` runs `.github/workflows/pages.yml`, which publishes `site/` as-is to GitHub Pages (https://marbinner.github.io/math-atlas/). CI does not run the build, so commit a regenerated `site/data.js` after data changes.
 - There are no tests or linters. To verify visually, take headless screenshots (put temp files in `claude_files/`):
   `google-chrome --headless=new --window-size=1400,1000 --virtual-time-budget=4000 --screenshot=claude_files/x.png "file://$PWD/site/index.html#/f/derivative"`
   To check for JS errors, add `--enable-logging=stderr --dump-dom` and grep stderr for `CONSOLE`/`Uncaught`. Run this via `bash -c`: the default shell is zsh, where `2>&1 >/dev/null` does not isolate stderr.
