@@ -8,9 +8,36 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = n => n.toLocaleString('en');
   const plural = (n, one, many = one + 's') => `${fmt(n)} ${n === 1 ? one : many}`;
-  const tex = (latex, display = false) => {
-    try { return katex.renderToString(latex, { displayMode: display, throwOnError: false }); }
-    catch { return `<code>${esc(latex)}</code>`; }
+  // Split a formula at top-level \quad / \qquad gaps (not inside braces, environments or \left...\right).
+  const splitTop = latex => {
+    const parts = [];
+    let depth = 0, start = 0;
+    for (let i = 0; i < latex.length; i++) {
+      const c = latex[i];
+      if (c === '{') depth++;
+      else if (c === '}') depth--;
+      else if (c === '\\') {
+        const m = latex.slice(i).match(/^\\([a-zA-Z]+|.)/);
+        if (m[1] === 'begin' || m[1] === 'left') depth++;
+        else if (m[1] === 'end' || m[1] === 'right') depth--;
+        else if ((m[1] === 'quad' || m[1] === 'qquad') && depth === 0) { parts.push(latex.slice(start, i)); start = i + m[0].length; }
+        i += m[0].length - 1;
+      }
+    }
+    parts.push(latex.slice(start));
+    return parts.map(x => x.trim()).filter(Boolean);
+  };
+  // Block formulas: each \quad-separated part is rendered in inline mode with \displaystyle (same look
+  // as display mode), so long formulas wrap between parts, or after relations, instead of being clipped.
+  const tex = (latex, block = false) => {
+    try {
+      if (!block) return katex.renderToString(latex, { throwOnError: false });
+      const parts = splitTop(latex).map(x => katex.renderToString(`\\displaystyle ${x}`, { throwOnError: true }));
+      return `<div class="math-block">${parts.map(h => `<span class="part">${h}</span>`).join('')}</div>`;
+    } catch {
+      try { return `<div class="math-block">${katex.renderToString(`\\displaystyle ${latex}`, { throwOnError: false })}</div>`; }
+      catch { return `<code>${esc(latex)}</code>`; }
+    }
   };
   const measureCtx = document.createElement('canvas').getContext('2d');
   const textWidth = (s, font) => { measureCtx.font = font; return measureCtx.measureText(s).width; };
@@ -20,7 +47,21 @@
     return s.trimEnd() + '…';
   };
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const firstSentence = s => (s.match(/^.*?[.!?](\s|$)/) || [s])[0].trim();
+  // Prose fields may contain inline maths as $...$; render those spans with KaTeX and escape the rest.
+  // A span that fails to parse falls back to its source text.
+  const prose = s => String(s ?? '').split(/(\$[^$]+\$)/).map((part, i) => {
+    if (i % 2 === 0) return esc(part);
+    try { return katex.renderToString(part.slice(1, -1), { throwOnError: true, strict: 'ignore' }); }
+    catch { return esc(part); }
+  }).join('');
+  const firstSentence = s => {
+    let inMath = false;
+    for (let i = 0; i < s.length; i++) {
+      if (s[i] === '$') inMath = !inMath;
+      else if (!inMath && '.!?'.includes(s[i]) && (i + 1 === s.length || s[i + 1] === ' ')) return s.slice(0, i + 1);
+    }
+    return s;
+  };
 
   const LEVEL = { 1: 'Foundations', 2: 'Undergraduate', 3: 'Advanced undergraduate', 4: 'Graduate' };
   const KIND = { theorem: 'Theorem', definition: 'Definition', identity: 'Identity', method: 'Method', model: 'Model' };
@@ -162,7 +203,7 @@
         svg.classList.add('hot');
         svg.querySelectorAll(`[data-k="${g.dataset.k}"]`).forEach(x => x.classList.add('on'));
         const m = F.get(g.dataset.id);
-        showTip(e, `<b>${esc(m.name)}</b><span class="m">${esc(g.dataset.group)} · ${esc(m.domain)}</span><p>${esc(g.dataset.text)}</p>`);
+        showTip(e, `<b>${esc(m.name)}</b><span class="m">${esc(g.dataset.group)} · ${esc(m.domain)}</span><p>${prose(g.dataset.text)}</p>`);
       });
       svg.addEventListener('mousemove', moveTip);
       svg.addEventListener('mouseout', e => {
@@ -222,7 +263,7 @@
       ['references', 'References', n.sources.length],
     ];
     const relSections = groups.map(g => `<h3 class="rel-h">${swatch(g.def.rel)}${esc(g.def.label)} <span class="count">${g.items.length}</span></h3>`
-      + `<ul class="rels">${g.items.map(e => `<li>${fLink(e.id)} <span class="x">— ${esc(e.text)}</span></li>`).join('')}</ul>`).join('');
+      + `<ul class="rels">${g.items.map(e => `<li>${fLink(e.id)} <span class="x">— ${prose(e.text)}</span></li>`).join('')}</ul>`).join('');
 
     const body = `
       <div class="crumbs">${dLink(n.domain)} › ${esc(n.subdomain)}</div>
@@ -239,9 +280,9 @@
           <tr><th>Map</th><td><a href="#/map/${n.id}">Show on map</a></td></tr>
         </table>
       </aside>
-      <p class="lead">${esc(n.intuition)}</p>
-      <h3>Conditions</h3><p>${esc(n.conditions)}</p>
-      <h3>Example</h3><p>${esc(n.example)}</p>
+      <p class="lead">${prose(n.intuition)}</p>
+      <h3>Conditions</h3><p>${prose(n.conditions)}</p>
+      <h3>Example</h3><p>${prose(n.example)}</p>
       ${h2('connections', 'Connections', linkCount)}
       <div class="figure">
         <div class="figure-bar"><span>Left: what it builds on · Right: where it leads · Hover for the explanation</span><span class="spacer"></span>
@@ -256,9 +297,9 @@
       <h3>Prepares for</h3>
       ${nxt.length ? `<ul class="plain cols">${nxt.map(p => `<li>${fLink(p)}</li>`).join('')}</ul>` : '<p class="muted">Nothing in the atlas lists this as background yet.</p>'}
       ${h2('patterns', 'Patterns')}
-      <ul class="rels">${n.patterns.map(([p, why]) => `<li>${pLink(p)} <span class="x">— ${esc(why)}</span></li>`).join('')}</ul>
+      <ul class="rels">${n.patterns.map(([p, why]) => `<li>${pLink(p)} <span class="x">— ${prose(why)}</span></li>`).join('')}</ul>
       ${pics.length ? `${h2('pictures', 'Mental pictures')}
-        <ul class="rels">${pics.map(({ m, role }) => `<li>${mLink(m.id)} <span class="x">— ${esc(role)}</span></li>`).join('')}</ul>` : ''}
+        <ul class="rels">${pics.map(({ m, role }) => `<li>${mLink(m.id)} <span class="x">— ${prose(role)}</span></li>`).join('')}</ul>` : ''}
       ${h2('references', 'References')}
       ${sourceList(n.sources)}`;
     page.innerHTML = article(sections, body);
@@ -287,20 +328,20 @@
           <tr><th>Pictures</th><td>${pics.length}</td></tr>
         </table>
       </aside>
-      <p class="lead">${esc(p.intuition)}</p>
-      <h3>Question to ask</h3><p class="callout">${esc(p.question)}</p>
-      <h3>Common trap</h3><p class="callout">${esc(p.trap)}</p>
+      <p class="lead">${prose(p.intuition)}</p>
+      <h3>Question to ask</h3><p class="callout">${prose(p.question)}</p>
+      <h3>Common trap</h3><p class="callout">${prose(p.trap)}</p>
       <p class="muted small">A pattern is an organizing template, not a theorem applying to every member. Check each formula's own hypotheses.</p>
       ${h2('examples', 'Representative examples')}
       <ul class="rels">${p.examples.map(e => {
         const w = members.find(x => x.n.id === e);
-        return `<li>${fLink(e)}${w ? ` <span class="x">— ${esc(w.why)}</span>` : ''}</li>`;
+        return `<li>${fLink(e)}${w ? ` <span class="x">— ${prose(w.why)}</span>` : ''}</li>`;
       }).join('')}</ul>
       ${h2('members', 'Members by field', members.length)}
       ${domains.map((d, i) => `<details${i < 2 ? ' open' : ''}><summary>${esc(d)}<span class="count">${byDomain.get(d).length}</span></summary>
-        <ul class="rels">${byDomain.get(d).map(({ n, why }) => `<li>${fLink(n.id)} <span class="x">— ${esc(why)}</span></li>`).join('')}</ul></details>`).join('')}
+        <ul class="rels">${byDomain.get(d).map(({ n, why }) => `<li>${fLink(n.id)} <span class="x">— ${prose(why)}</span></li>`).join('')}</ul></details>`).join('')}
       ${pics.length ? `${h2('pictures', 'Mental pictures', pics.length)}
-        <ul class="rels">${pics.map(m => `<li>${mLink(m.id)} <span class="x">— ${esc(firstSentence(m.story))}</span></li>`).join('')}</ul>` : ''}`;
+        <ul class="rels">${pics.map(m => `<li>${mLink(m.id)} <span class="x">— ${prose(firstSentence(m.story))}</span></li>`).join('')}</ul>` : ''}`;
     page.innerHTML = article(sections, body);
     return p.name;
   }
@@ -314,15 +355,15 @@
       <div class="crumbs"><a href="#/metaphors">Mental pictures</a></div>
       <h1>${esc(m.title)}</h1>
       <div class="tagline">Mental picture · ${m.patterns.map(pLink).join(', ')}</div>
-      <p class="lead">${esc(m.story)}</p>
+      <p class="lead">${prose(m.story)}</p>
       <p class="muted small">A teaching device: it maps a picture onto formulas, but does not establish an equivalence or a prerequisite.</p>
-      ${h2('structure', 'Shared structure')}<p>${esc(m.structure)}</p>
+      ${h2('structure', 'Shared structure')}<p>${prose(m.structure)}</p>
       ${h2('mapping', 'What maps to what')}
       <table class="table"><thead><tr><th>Formula</th><th>Role in the picture</th><th>Statement</th></tr></thead><tbody>
-      ${m.mappings.map(([f, role]) => { const n = F.get(f); return `<tr><td>${fLink(f)}<div class="muted small">${esc(n?.domain)}</div></td><td>${esc(role)}</td><td class="formula">${n ? tex(n.latex) : ''}</td></tr>`; }).join('')}
+      ${m.mappings.map(([f, role]) => { const n = F.get(f); return `<tr><td>${fLink(f)}<div class="muted small">${esc(n?.domain)}</div></td><td>${prose(role)}</td><td class="formula">${n ? tex(n.latex) : ''}</td></tr>`; }).join('')}
       </tbody></table>
-      ${h2('limits', 'Where it breaks')}<p class="callout">${esc(m.limits)}</p>
-      ${h2('question', 'Transfer question')}<p class="callout">${esc(m.question)}</p>
+      ${h2('limits', 'Where it breaks')}<p class="callout">${prose(m.limits)}</p>
+      ${h2('question', 'Transfer question')}<p class="callout">${prose(m.question)}</p>
       ${h2('references', 'References')}${sourceList(m.sources)}`;
     page.innerHTML = article(sections, body);
     return m.title;
@@ -347,7 +388,7 @@
       <div class="tagline">${plural(nodes.length, 'entry', 'entries')} in ${plural(subs.length, 'subfield')} · <a href="#/map/field/${encodeURIComponent(d)}">Show on map</a></div>
       ${subs.map(s => `${h2(slug(s), s, bySub.get(s).length)}
         <ul class="rels">${bySub.get(s).sort((a, b) => a.level - b.level || a.name.localeCompare(b.name)).map(n =>
-          `<li>${fLink(n.id)} <span class="muted small">${KIND[n.kind]} · ${LEVEL[n.level]}</span><br><span class="x">${esc(firstSentence(n.intuition))}</span></li>`).join('')}</ul>`).join('')}
+          `<li>${fLink(n.id)} <span class="muted small">${KIND[n.kind]} · ${LEVEL[n.level]}</span><br><span class="x">${prose(firstSentence(n.intuition))}</span></li>`).join('')}</ul>`).join('')}
       ${h2('neighbors', 'Connected fields')}
       <p class="muted small">Number of explained mathematical links between entries of ${esc(d)} and each other field.</p>
       <ul class="plain cols">${crossSorted.map(([od, c]) => `<li>${dLink(od)} <span class="count">${c}</span></li>`).join('')}</ul>`;
@@ -373,7 +414,7 @@
       <h1>Recurring patterns</h1>
       <div class="tagline">${A.patterns.length} structures that recur across fields. Sharing a pattern is a classification, not an equivalence.</div>
       <table class="table"><thead><tr><th>Pattern</th><th>Archetype</th><th>Question to ask</th><th style="text-align:right">Members</th></tr></thead><tbody>
-      ${rows.map(p => `<tr><td style="white-space:nowrap">${pLink(p.id)}</td><td class="formula">${tex(p.latex)}</td><td class="muted">${esc(p.question)}</td><td class="num">${membersOf.get(p.id).length}</td></tr>`).join('')}
+      ${rows.map(p => `<tr><td style="white-space:nowrap">${pLink(p.id)}</td><td class="formula">${tex(p.latex)}</td><td class="muted">${prose(p.question)}</td><td class="num">${membersOf.get(p.id).length}</td></tr>`).join('')}
       </tbody></table></article></div>`;
     return 'Patterns';
   }
@@ -383,7 +424,7 @@
     page.innerHTML = `<div class="wrap"><article style="max-width:900px">
       <h1>Mental pictures</h1>
       <div class="tagline">${A.metaphors.length} teaching metaphors, each with explicit formula mappings and stated limits.</div>
-      <ul class="rels">${rows.map(m => `<li>${mLink(m.id)} <span class="muted small">· ${m.patterns.map(p => esc(P.get(p)?.name || p)).join(', ')}</span><br><span class="x">${esc(firstSentence(m.story))}</span></li>`).join('')}</ul>
+      <ul class="rels">${rows.map(m => `<li>${mLink(m.id)} <span class="muted small">· ${m.patterns.map(p => esc(P.get(p)?.name || p)).join(', ')}</span><br><span class="x">${prose(firstSentence(m.story))}</span></li>`).join('')}</ul>
     </article></div>`;
     return 'Mental pictures';
   }
@@ -422,7 +463,7 @@
           <h2>Start here</h2>
           <ol class="path">${start.map(([id, x]) => `<li>${fLink(id)}<span class="x">${esc(x)}</span></li>`).join('')}</ol>
           <h2>Mental picture of the day</h2>
-          <div class="card"><h3>${mLink(featured.id)}</h3><p>${esc(featured.story)}</p>
+          <div class="card"><h3>${mLink(featured.id)}</h3><p>${prose(featured.story)}</p>
             <p class="small">Maps onto ${featured.mappings.map(([f]) => fLink(f)).join(', ')}.</p></div>
           <h2>How to read a link</h2>
           <ul class="plain small">
@@ -640,10 +681,19 @@
     page.innerHTML = `<div class="map"><canvas></canvas>
       <div class="map-legend">${['generalization', 'derivation', 'application', 'equivalence', 'analogy', 'duality'].map(r => `<span>${swatch(r)}${r[0].toUpperCase() + r.slice(1)}</span>`).join('')}</div>
       <div class="map-hint">Scroll to zoom · drag to pan · click a dot or a field name</div>
-      <aside class="map-panel" hidden></aside></div>`;
+      <aside class="map-panel" hidden>
+        <div class="grip" title="Drag to resize"></div>
+        <div class="panel-tools">
+          <button class="icon-btn expand" type="button" aria-label="Widen panel" title="Widen panel"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6 3 12l6 6M15 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+          <button class="icon-btn close" type="button" aria-label="Close" title="Close">✕</button>
+        </div>
+        <div class="panel-body"></div>
+      </aside></div>`;
     const canvas = page.querySelector('.map canvas');
     const panel = page.querySelector('.map-panel');
     const legend = page.querySelector('.map-legend');
+    const panelBody = panel.querySelector('.panel-body');
+    const expandBtn = panel.querySelector('.expand');
     let w, h, ctx, t, k0;
     const st = { k0: 1 };
 
@@ -693,7 +743,7 @@
     const flyToFit = ids => {
       const pts = ids.map(i => F.get(i));
       const x0 = d3.min(pts, n => n.x), x1 = d3.max(pts, n => n.x), y0 = d3.min(pts, n => n.y), y1 = d3.max(pts, n => n.y);
-      const avail = w - (panel.hidden || w < 720 ? 0 : 380);
+      const avail = w - (panel.hidden || w < 720 ? 0 : panel.offsetWidth + 24);
       const k = Math.max(k0, Math.min(k0 * 6, (avail - 120) / (x1 - x0 + 1), (h - 120) / (y1 - y0 + 1)));
       sel.transition().duration(650).call(zoom.transform,
         d3.zoomIdentity.translate(avail / 2 - k * (x0 + x1) / 2, h / 2 - k * (y0 + y1) / 2).scale(k));
@@ -703,19 +753,50 @@
       const groups = connectionGroups(n.id);
       panel.hidden = false;
       legend.hidden = false;
-      panel.innerHTML = `<button class="icon-btn close" aria-label="Close">✕</button>
-        <div class="crumbs">${dLink(n.domain)} › ${esc(n.subdomain)}</div>
+      panelBody.innerHTML = `<div class="crumbs">${dLink(n.domain)} › ${esc(n.subdomain)}</div>
         <h2>${esc(n.name)}</h2>
         <div class="muted small">${KIND[n.kind]} · ${LEVEL[n.level]}</div>
         <div class="formula">${tex(n.latex, true)}</div>
-        <p>${esc(n.intuition)}</p>
+        <p>${prose(n.intuition)}</p>
         <p><a href="#/f/${n.id}">Read the full entry →</a></p>
         ${groups.map(g => `<h3 class="rel-h">${swatch(g.def.rel)}${esc(g.def.label)}</h3>
           <ul class="plain">${g.items.map(e => `<li><a data-sel="${e.id}">${esc(F.get(e.id).name)}</a></li>`).join('')}</ul>`).join('')
         || '<p class="muted">No explained mathematical links yet.</p>'}`;
-      panel.querySelector('.close').onclick = () => go('#/map');
-      panel.querySelectorAll('[data-sel]').forEach(a => a.onclick = () => go(`#/map/${a.dataset.sel}`));
+      panelBody.querySelectorAll('[data-sel]').forEach(a => a.onclick = () => go(`#/map/${a.dataset.sel}`));
     };
+    panel.querySelector('.close').onclick = () => go('#/map');
+
+    // Panel width: drag the left edge, or toggle wide with the expand button. Remembered per browser.
+    const PANEL_MIN = 320, PANEL_DEFAULT = 480;
+    const wideWidth = () => Math.max(PANEL_DEFAULT + 1, Math.round(w * 0.6));
+    const refit = () => { if (st.sel) flyToFit([st.sel, ...nbrs.get(st.sel).map(e => e.id)]); };
+    const setPanelWidth = (px, save) => {
+      px = Math.round(Math.max(PANEL_MIN, Math.min(px, w - 120)));
+      panel.style.width = px + 'px';
+      expandBtn.setAttribute('aria-pressed', String(px > PANEL_DEFAULT));
+      if (save) try { localStorage.setItem('atlas-panel-width', px); } catch { /* storage unavailable */ }
+    };
+    let stored = null;
+    try { stored = Number(localStorage.getItem('atlas-panel-width')) || null; } catch { /* storage unavailable */ }
+    setPanelWidth(stored || PANEL_DEFAULT);
+    expandBtn.onclick = () => {
+      setPanelWidth(panel.offsetWidth > PANEL_DEFAULT ? PANEL_DEFAULT : wideWidth(), true);
+      refit();
+    };
+    const grip = panel.querySelector('.grip');
+    grip.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      grip.setPointerCapture(e.pointerId);
+      const right = panel.getBoundingClientRect().right;
+      const move = ev => setPanelWidth(right - ev.clientX);
+      const up = () => {
+        grip.removeEventListener('pointermove', move);
+        setPanelWidth(panel.offsetWidth, true);
+        refit();
+      };
+      grip.addEventListener('pointermove', move);
+      grip.addEventListener('pointerup', up, { once: true });
+    });
 
     mapState = {
       canvas,

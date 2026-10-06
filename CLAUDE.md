@@ -12,9 +12,13 @@ A static, Wikipedia-style explorer for a curated "Mathematics Atlas" dataset: ~1
 uv run scripts/build.py   # data/atlas.json -> site/data.js (always use uv for Python)
 ```
 
+```sh
+npm install && npm run check-math   # every $...$ span in prose and every display formula must parse in KaTeX (strict)
+```
+
 - No server needed: open `site/index.html` directly (`data.js` sets `window.ATLAS`, so it works over `file://`). KaTeX and d3 load from cdnjs.
 - The map layout is cached in `.cache/layout.json`, keyed on entries, fields, links and `LAYOUT_VERSION`. A fresh layout takes ~1 minute; a cached build takes under 1s. **Bump `LAYOUT_VERSION` in `scripts/build.py` whenever layout code or parameters change**, or the stale cache is silently reused.
-- Deploy: pushing to `main` runs `.github/workflows/pages.yml`, which publishes `site/` as-is to GitHub Pages (https://marbinner.github.io/math-atlas/). CI does not run the build, so commit a regenerated `site/data.js` after data changes.
+- Deploy: pushing to `main` runs `.github/workflows/pages.yml`, which publishes `site/` as-is to GitHub Pages (https://marbinner.github.io/math-atlas/). CI runs `npm run check-math` but not the build, so commit a regenerated `site/data.js` after data changes.
 - There are no tests or linters. To verify visually, take headless screenshots (put temp files in `claude_files/`):
   `google-chrome --headless=new --window-size=1400,1000 --virtual-time-budget=4000 --screenshot=claude_files/x.png "file://$PWD/site/index.html#/f/derivative"`
   To check for JS errors, add `--enable-logging=stderr --dump-dom` and grep stderr for `CONSOLE`/`Uncaught`. Run this via `bash -c`: the default shell is zsh, where `2>&1 >/dev/null` does not isolate stderr.
@@ -33,8 +37,16 @@ uv run scripts/build.py   # data/atlas.json -> site/data.js (always use uv for P
   - equivalence, analogy and duality are symmetric.
 - Prerequisites and metaphors are deliberately *not* mathematical connections; the UI says so.
 
+## Inline maths in prose
+
+Prose fields (intuition, conditions, example, pattern `why`, edge explanations, metaphor text) may contain inline LaTeX delimited by `$...$`; `prose()` in `app.js` renders it with KaTeX and escapes the rest. Conventions for marking up data:
+- Wrap every mathematical expression in `$...$`, including lone variables (`$f$`, `$x$`) and short relations (`$x>0$`).
+- Inside `$...$` use LaTeX, not Unicode: `\neq`, `\le`, `\in`, `\alpha`, `x^2`, `x_0`, `f'`, `\mathbb{R}^n`, `\cdots`; function names as `\sin`, `\log`, `\exp`, `\det`, `\operatorname{diag}`.
+- Keep words and sentence punctuation outside the maths; leave bare numbers in running text as text; don't reword the prose.
+
 ## Site architecture (`site/app.js`, one IIFE, no framework)
 
+- **Formulas.** `tex(latex, true)` splits a display formula at top-level `\quad` gaps and renders each part with `\displaystyle` in KaTeX *inline* mode, so long formulas wrap instead of being clipped (display mode cannot wrap).
 - **Routing.** A hash router in `route()`: `#/` home, `#/f/<id>` formula, `#/p/<id>` pattern, `#/m/<id>` metaphor, `#/field/<name>`, `#/fields`, `#/patterns`, `#/metaphors`, `#/map[/<id> | /field/<name>]`.
   - Page functions render HTML strings into `#page` and return the document title.
   - `''` means the default title; `undefined` or `null` falls through to `notFound()`.
