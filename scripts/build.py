@@ -1,8 +1,6 @@
 """Build site/data.js from data/atlas.json.
 
-Drops edges that duplicate information stored on nodes (pattern memberships,
-metaphor mappings, prerequisite lists) and precomputes the map layout: a
-spring layout in which each field forms a "continent", followed by collision
+Precomputes the map layout: a spring layout in which each field forms a "continent", followed by collision
 and field-separation passes. The layout is cached in .cache/ and only
 recomputed when entries, fields or links change.
 
@@ -156,8 +154,8 @@ def layout(nodes, edges):
 def main():
     atlas = json.loads(SRC.read_text())
     nodes, edges = atlas["nodes"], atlas["edges"]
-    formula_edges = [e for e in edges if e["type"] in MATH_RELATIONS + ["prerequisite"]]
-    pos, dom_layout = layout(nodes, formula_edges)
+    prerequisites = [{"source": p, "target": n["id"], "type": "prerequisite"} for n in nodes for p in n["prerequisites"]]
+    pos, dom_layout = layout(nodes, edges + prerequisites)
 
     out_nodes = []
     for n in nodes:
@@ -183,8 +181,7 @@ def main():
         "patterns": m["patterns"], "sources": m["sources"],
     } for m in atlas["metaphors"]]
 
-    links = [[e["source"], e["target"], e["type"], e["explanation"]]
-             for e in edges if e["type"] in MATH_RELATIONS]
+    links = [[e["source"], e["target"], e["type"], e["explanation"]] for e in edges]
 
     domain_counts = Counter(n["domain"] for n in nodes)
     missing = set(domain_counts) - {d for ds in REGIONS.values() for d in ds}
@@ -193,7 +190,7 @@ def main():
     domains = {d: {"count": c, **dom_layout[d]} for d, c in domain_counts.items()}
 
     data = {
-        "meta": atlas["meta"], "regions": regions, "domains": domains,
+        "regions": regions, "domains": domains,
         "nodes": out_nodes, "patterns": patterns, "metaphors": metaphors,
         "links": links, "sources": {s["id"]: s for s in atlas["sources"]},
     }

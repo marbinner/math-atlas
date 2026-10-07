@@ -98,15 +98,15 @@
   // Directions follow the dataset: generalization goes simpler -> more general,
   // derivation goes tool -> consequence, application goes idea -> use.
   const GROUPS = [
-    { key: 'generalization:in', rel: 'generalization', side: 'L', label: 'Special cases', hint: 'simpler results this one generalizes' },
-    { key: 'derivation:in', rel: 'derivation', side: 'L', label: 'Derived from', hint: 'tools used to obtain this result' },
-    { key: 'application:in', rel: 'application', side: 'L', label: 'Uses', hint: 'ideas applied here' },
-    { key: 'generalization:out', rel: 'generalization', side: 'R', label: 'Generalizations', hint: 'more general results' },
-    { key: 'derivation:out', rel: 'derivation', side: 'R', label: 'Consequences', hint: 'results derived from this one' },
-    { key: 'application:out', rel: 'application', side: 'R', label: 'Used in', hint: 'where this idea is applied' },
-    { key: 'equivalence', rel: 'equivalence', side: 'S', label: 'Equivalent forms', hint: 'the same content stated differently' },
-    { key: 'duality', rel: 'duality', side: 'S', label: 'Dual results', hint: 'mirror statements' },
-    { key: 'analogy', rel: 'analogy', side: 'S', label: 'Analogies', hint: 'parallel structure, not equivalence' },
+    { key: 'generalization:in', rel: 'generalization', side: 'L', label: 'Special cases' },
+    { key: 'derivation:in', rel: 'derivation', side: 'L', label: 'Derived from' },
+    { key: 'application:in', rel: 'application', side: 'L', label: 'Uses' },
+    { key: 'generalization:out', rel: 'generalization', side: 'R', label: 'Generalizations' },
+    { key: 'derivation:out', rel: 'derivation', side: 'R', label: 'Consequences' },
+    { key: 'application:out', rel: 'application', side: 'R', label: 'Used in' },
+    { key: 'equivalence', rel: 'equivalence', side: 'S', label: 'Equivalent forms' },
+    { key: 'duality', rel: 'duality', side: 'S', label: 'Dual results' },
+    { key: 'analogy', rel: 'analogy', side: 'S', label: 'Analogies' },
   ];
   const PRE_IN = { key: 'pre:in', rel: 'prerequisite', side: 'L', label: 'Prerequisites' };
   const PRE_OUT = { key: 'pre:out', rel: 'prerequisite', side: 'R', label: 'Prepares for' };

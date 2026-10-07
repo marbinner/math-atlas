@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A static, Wikipedia-style explorer for a curated "Mathematics Atlas" dataset: ~1,500 formulas/theorems linked by explained relationships, 31 recurring pattern hubs and 166 teaching metaphors. The user wants the site kept **clean and minimal**, and iterates on both the data and the site.
+A static, Wikipedia-style explorer for a curated "Mathematics Atlas" dataset: about 1,500 formulas/theorems linked by explained relationships, recurring pattern hubs and teaching metaphors (mental pictures). The user wants the site kept **clean and minimal**, and iterates on both the data and the site.
 
 ## Commands
 
@@ -13,12 +13,12 @@ uv run scripts/build.py   # data/atlas.json -> site/data.js (always use uv for P
 ```
 
 ```sh
-npm install && npm run check-math   # every $...$ span in prose and every display formula must parse in KaTeX (strict)
+npm install && npm run check   # references resolve, links are unique, and all maths parses in KaTeX (strict)
 ```
 
 - No server needed: open `site/index.html` directly (`data.js` sets `window.ATLAS`, so it works over `file://`). KaTeX and d3 load from cdnjs.
 - The map layout is cached in `.cache/layout.json`, keyed on entries, fields, links and `LAYOUT_VERSION`. A fresh layout takes ~1 minute; a cached build takes under 1s. **Bump `LAYOUT_VERSION` in `scripts/build.py` whenever layout code or parameters change**, or the stale cache is silently reused.
-- Deploy: pushing to `main` runs `.github/workflows/pages.yml`, which publishes `site/` as-is to GitHub Pages (https://marbinner.github.io/math-atlas/). CI runs `npm run check-math`, appends content-hash `?v=` query strings to the asset URLs in `index.html` (Pages serves `max-age=600`, so stale `data.js` was a real problem), then uploads `site/`. It does not run the Python build, so commit a regenerated `site/data.js` after data changes. If the `deploy-pages` step fails with "No artifacts named github-pages", it is transient: re-run (or push an empty commit).
+- Deploy: pushing to `main` runs `.github/workflows/pages.yml`, which publishes `site/` as-is to GitHub Pages (https://marbinner.github.io/math-atlas/). CI runs `npm run check`, appends content-hash `?v=` query strings to the asset URLs in `index.html` (Pages serves `max-age=600`, so stale `data.js` was a real problem), then uploads `site/`. It does not run the Python build, so commit a regenerated `site/data.js` after data changes. If the `deploy-pages` step fails with "No artifacts named github-pages", it is transient: re-run (or push an empty commit).
 - There are no tests or linters. To verify visually, take headless screenshots (put temp files in `claude_files/`):
   `google-chrome --headless=new --window-size=1400,1000 --virtual-time-budget=4000 --screenshot=claude_files/x.png "file://$PWD/site/index.html#/f/derivative"`
   To check for JS errors, add `--enable-logging=stderr --dump-dom` and grep stderr for `CONSOLE`/`Uncaught`. Run this via `bash -c`: the default shell is zsh, where `2>&1 >/dev/null` does not isolate stderr.
@@ -27,8 +27,7 @@ npm install && npm run check-math   # every $...$ span in prose and every displa
 
 - `atlas.json` is the only data file (the old CSV/xlsx/sqlite/graphml exports were removed; regenerate from `atlas.json` if one is ever needed). `data/README.txt` documents the schema and relation semantics.
 - Top-level keys are `nodes` (formulas), `patterns`, `metaphors`, `edges` and `sources`.
-- Edge `type` is one of the six mathematical relations (`generalization`, `derivation`, `application`, `equivalence`, `analogy`, `duality`) or `pattern`, `metaphor` or `prerequisite`.
-  - The `pattern`, `metaphor` and `prerequisite` edges duplicate `node.patterns`, `metaphor.mappings` and `node.prerequisites` exactly; keep them in sync when editing (edge id = `e-` + first 16 hex of sha256 of `source|target|type`). The build drops them and exports only the math relations as `links`.
+- `edges` holds only the mathematical links: `{source, target, type, explanation}`, with `type` one of `generalization`, `derivation`, `application`, `equivalence`, `analogy`, `duality`. Pattern memberships, picture mappings and prerequisites live only on their objects (`node.patterns`, `metaphor.mappings`, `node.prerequisites`), so nothing needs syncing; `npm run check` catches broken references and duplicate links.
 - Direction matters:
   - generalization: simpler → more general
   - derivation: tool → consequence

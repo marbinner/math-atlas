@@ -6,7 +6,7 @@ A Wikipedia-style explorer for a curated atlas of mathematical formulas, their e
 
 - `data/` — the dataset: `atlas.json` (everything) and `README.txt` (schema, relation semantics, learning guide).
 - `scripts/build.py` — turns `data/atlas.json` into `site/data.js` and precomputes the map layout.
-- `scripts/check_math.js` — checks that every formula and every `$...$` inline-maths span parses in KaTeX.
+- `scripts/check.js` — checks the data: references resolve, links are unique, and every formula and `$...$` span parses in KaTeX.
 - `site/` — the static site: `index.html`, `style.css`, `app.js` and the generated `data.js`.
 
 ## Build and view
@@ -14,7 +14,7 @@ A Wikipedia-style explorer for a curated atlas of mathematical formulas, their e
 ```sh
 uv run scripts/build.py      # regenerate site/data.js (layout is cached in .cache/)
 npm install                  # once; installs KaTeX for the maths check
-npm run check-math           # validate all formulas and inline maths
+npm run check                # validate the data and all maths
 xdg-open site/index.html     # or open it in any browser; no server needed
 ```
 

@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check-math": "node scripts/check_math.js"
+    "check": "node scripts/check.js"
   },
   "devDependencies": {
     "katex": "0.16.11"
