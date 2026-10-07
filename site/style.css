@@ -217,6 +217,7 @@ article h2 .n { font-family: var(--sans); font-size: 0.9rem; color: var(--muted)
 .tip b { display: block; }
 .tip .m { color: var(--muted); font-size: 0.78rem; }
 .tip p { margin: 4px 0 0; color: var(--ink-2); }
+.tip .tip-formula { margin: 8px 0 6px; font-size: 0.95rem; overflow: hidden; }
 
 /* ---------- home ---------- */
 .hero { padding: 48px 0 8px; max-width: 760px; }

@@ -724,10 +724,18 @@
       const f = !n && fieldAt(mx, my);
       canvas.style.cursor = n || f ? 'pointer' : '';
       const id = n ? n.id : null;
-      if (id !== st.hover) { st.hover = id; draw(); }
+      if (id !== st.hover) {
+        st.hover = id;
+        draw();
+        if (n) showTip(ev, `<b>${esc(n.name)}</b><span class="m">${KIND[n.kind]} · ${esc(n.domain)}</span>`
+          + `<div class="tip-formula">${tex(n.latex, true)}</div><p>${prose(n.intuition)}</p>`);
+        else hideTip();
+      } else moveTip(ev);
     });
-    canvas.addEventListener('mouseleave', () => { st.hover = null; draw(); });
+    canvas.addEventListener('mouseleave', () => { st.hover = null; hideTip(); draw(); });
+    canvas.addEventListener('wheel', () => { st.hover = null; hideTip(); }, { passive: true });
     canvas.addEventListener('click', ev => {
+      hideTip();
       const { n, mx, my } = pick(ev);
       if (n) return go(`#/map/${n.id}`);
       const f = fieldAt(mx, my);
