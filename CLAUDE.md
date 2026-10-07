@@ -54,6 +54,8 @@ Prose fields (intuition, conditions, example, pattern `why`, edge explanations, 
   - `''` means the default title; `undefined` or `null` falls through to `notFound()`.
 - **Indexes.** Built once at startup: `F`/`P`/`M` maps, plus `nbrs`, `nextOf`, `picturesOf` and `membersOf`.
 - **`GROUPS`** maps each (relation, direction) to a reader-facing label and side, e.g. `derivation:in` → "Derived from" on the left. Both the article connection lists and the ego graph use it.
+- **Entry pages** put mental pictures and analogies together under "Ways to see it" (right after the example); the exact relations stay under Connections.
+- **Hover previews.** `entryTip(n)` (name, formula, intuition) is shown in the shared `#tip` tooltip when hovering map dots and, after 250 ms, any `#/f/` or `data-sel` link (only on devices with hover). `hideTip()` also cancels a pending preview. Headless Chrome reports no hover device; test with `--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4`.
 - **Ego graph** (`egoGraph`/`mountEgo`). An SVG with incoming relations in the left column and outgoing ones on the right. Symmetric groups go on whichever column is shorter.
 - **Map** (`drawAtlas`/`mountMap`). A canvas plus d3-zoom, using the precomputed `x`/`y` from the build.
   - Selecting an entry opens a side panel (default 480px; drag its left edge or use the expand button; width saved in `localStorage` as `atlas-panel-width`) and frames the entry plus its neighbours.

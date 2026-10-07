@@ -233,7 +233,30 @@
     tip.style.left = x + 'px';
     tip.style.top = y + 'px';
   }
-  function hideTip() { tip.hidden = true; }
+  let tipTimer = null;
+  function hideTip() { clearTimeout(tipTimer); tip.hidden = true; }
+  const entryTip = n => `<b>${esc(n.name)}</b><span class="m">${KIND[n.kind]} · ${esc(n.domain)}</span>`
+    + `<div class="tip-formula">${tex(n.latex, true)}</div><p>${prose(n.intuition)}</p>`;
+
+  // Hovering any entry link previews the entry (after a short delay, so sweeping across a list doesn't flicker).
+  if (matchMedia('(hover: hover)').matches) {
+    const LINK = 'a[href^="#/f/"], a[data-sel]';
+    let last = null;
+    document.addEventListener('mouseover', e => {
+      const a = e.target.closest?.(LINK);
+      if (!a || a.closest('#results')) return;
+      const n = F.get(a.dataset.sel || decodeURIComponent(a.getAttribute('href').slice(4)));
+      if (!n) return;
+      last = e;
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(() => showTip(last, entryTip(n)), 250);
+    });
+    document.addEventListener('mousemove', e => { if (e.target.closest?.(LINK)) { last = e; moveTip(e); } });
+    document.addEventListener('mouseout', e => {
+      const a = e.target.closest?.(LINK);
+      if (a && !a.contains(e.relatedTarget)) hideTip();
+    });
+  }
 
   /* ---------- shared page pieces ---------- */
   const toc = sections => `<nav class="toc"><b>Contents</b>${sections.map(([id, label, n]) =>
@@ -251,18 +274,22 @@
     const n = F.get(id);
     if (!n) return notFound();
     const groups = connectionGroups(id);
-    const linkCount = groups.reduce((s, g) => s + g.items.length, 0);
+    // Analogies sit with the mental pictures under "Ways to see it"; the exact relations stay under Connections.
+    const analogies = groups.find(g => g.def.rel === 'analogy')?.items || [];
+    const exact = groups.filter(g => g.def.rel !== 'analogy');
+    const linkCount = exact.reduce((s, g) => s + g.items.length, 0);
     const pre = n.prerequisites.filter(p => F.has(p));
     const nxt = nextOf.get(id);
     const pics = picturesOf.get(id) || [];
+    const ways = pics.length + analogies.length;
     const sections = [
+      ...(ways ? [['ways', 'Ways to see it', ways]] : []),
       ['connections', 'Connections', linkCount],
       ['learning', 'Learning path', pre.length + nxt.length],
       ['patterns', 'Patterns', n.patterns.length],
-      ...(pics.length ? [['pictures', 'Mental pictures', pics.length]] : []),
       ['references', 'References', n.sources.length],
     ];
-    const relSections = groups.map(g => `<h3 class="rel-h">${swatch(g.def.rel)}${esc(g.def.label)} <span class="count">${g.items.length}</span></h3>`
+    const relSections = exact.map(g => `<h3 class="rel-h">${swatch(g.def.rel)}${esc(g.def.label)} <span class="count">${g.items.length}</span></h3>`
       + `<ul class="rels">${g.items.map(e => `<li>${fLink(e.id)} <span class="x">— ${prose(e.text)}</span></li>`).join('')}</ul>`).join('');
 
     const body = `
@@ -283,13 +310,20 @@
       <p class="lead">${prose(n.intuition)}</p>
       <h3>Conditions</h3><p>${prose(n.conditions)}</p>
       <h3>Example</h3><p>${prose(n.example)}</p>
+      ${ways ? `${h2('ways', 'Ways to see it')}
+        ${pics.length ? `<h3>Mental pictures</h3>
+          <ul class="rels">${pics.map(({ m, role }) => `<li>${mLink(m.id)} <span class="x">— ${prose(firstSentence(m.story))}</span>
+            <div class="here">In the picture: ${prose(role)}</div></li>`).join('')}</ul>` : ''}
+        ${analogies.length ? `<h3 class="rel-h">${swatch('analogy')}Analogies <span class="count">${analogies.length}</span></h3>
+          <ul class="rels">${analogies.map(e => `<li>${fLink(e.id)} <span class="muted small">${esc(F.get(e.id).domain)}</span>
+            <span class="x">— ${prose(e.text)}</span></li>`).join('')}</ul>` : ''}` : ''}
       ${h2('connections', 'Connections', linkCount)}
       <div class="figure">
         <div class="figure-bar"><span>Left: what it builds on · Right: where it leads · Hover for the explanation</span><span class="spacer"></span>
           <label><input type="checkbox"> Include learning path</label></div>
         <div class="figure-scroll"></div>
       </div>
-      ${relSections || '<p class="muted">No explained mathematical links yet.</p>'}
+      ${relSections || `<p class="muted">${analogies.length ? 'No exact relations yet; see the analogies above.' : 'No explained mathematical links yet.'}</p>`}
       ${h2('learning', 'Learning path')}
       <p class="muted small">Prerequisites are an editorial scaffold: suggested background, not logical dependencies.</p>
       <h3>Suggested background</h3>
@@ -298,8 +332,6 @@
       ${nxt.length ? `<ul class="plain cols">${nxt.map(p => `<li>${fLink(p)}</li>`).join('')}</ul>` : '<p class="muted">Nothing in the atlas lists this as background yet.</p>'}
       ${h2('patterns', 'Patterns')}
       <ul class="rels">${n.patterns.map(([p, why]) => `<li>${pLink(p)} <span class="x">— ${prose(why)}</span></li>`).join('')}</ul>
-      ${pics.length ? `${h2('pictures', 'Mental pictures')}
-        <ul class="rels">${pics.map(({ m, role }) => `<li>${mLink(m.id)} <span class="x">— ${prose(role)}</span></li>`).join('')}</ul>` : ''}
       ${h2('references', 'References')}
       ${sourceList(n.sources)}`;
     page.innerHTML = article(sections, body);
@@ -727,8 +759,7 @@
       if (id !== st.hover) {
         st.hover = id;
         draw();
-        if (n) showTip(ev, `<b>${esc(n.name)}</b><span class="m">${KIND[n.kind]} · ${esc(n.domain)}</span>`
-          + `<div class="tip-formula">${tex(n.latex, true)}</div><p>${prose(n.intuition)}</p>`);
+        if (n) showTip(ev, entryTip(n));
         else hideTip();
       } else moveTip(ev);
     });
