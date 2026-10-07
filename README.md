@@ -4,7 +4,7 @@ A Wikipedia-style explorer for a curated atlas of mathematical formulas, their e
 
 ## Layout
 
-- `data/` — the source dataset (`atlas.json` is the canonical file; the other formats are exports of it).
+- `data/` — the dataset: `atlas.json` (everything) and `README.txt` (schema, relation semantics, learning guide).
 - `scripts/build.py` — turns `data/atlas.json` into `site/data.js` and precomputes the map layout.
 - `scripts/check_math.js` — checks that every formula and every `$...$` inline-maths span parses in KaTeX.
 - `site/` — the static site: `index.html`, `style.css`, `app.js` and the generated `data.js`.

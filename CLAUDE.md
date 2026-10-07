@@ -25,10 +25,10 @@ npm install && npm run check-math   # every $...$ span in prose and every displa
 
 ## Data model (`data/`)
 
-- `atlas.json` is canonical. The CSV/xlsx/sqlite/graphml files are parallel exports of the same data, so keep them in sync if the data is edited. `data/README.txt` documents the schema and relation semantics.
+- `atlas.json` is the only data file (the old CSV/xlsx/sqlite/graphml exports were removed; regenerate from `atlas.json` if one is ever needed). `data/README.txt` documents the schema and relation semantics.
 - Top-level keys are `nodes` (formulas), `patterns`, `metaphors`, `edges` and `sources`.
 - Edge `type` is one of the six mathematical relations (`generalization`, `derivation`, `application`, `equivalence`, `analogy`, `duality`) or `pattern`, `metaphor` or `prerequisite`.
-  - The `pattern`, `metaphor` and `prerequisite` edges duplicate `node.patterns`, `metaphor.mappings` and `node.prerequisites` exactly. The build drops them and exports only the math relations as `links`.
+  - The `pattern`, `metaphor` and `prerequisite` edges duplicate `node.patterns`, `metaphor.mappings` and `node.prerequisites` exactly; keep them in sync when editing (edge id = `e-` + first 16 hex of sha256 of `source|target|type`). The build drops them and exports only the math relations as `links`.
 - Direction matters:
   - generalization: simpler → more general
   - derivation: tool → consequence
@@ -43,7 +43,7 @@ Prose fields (intuition, conditions, example, pattern `why`, edge explanations, 
 - Wrap every mathematical expression in `$...$`, including lone variables (`$f$`, `$x$`) and short relations (`$x>0$`).
 - Inside `$...$` use LaTeX, not Unicode: `\neq`, `\le`, `\in`, `\alpha`, `x^2`, `x_0`, `f'`, `\mathbb{R}^n`, `\cdots`; function names as `\sin`, `\log`, `\exp`, `\det`, `\operatorname{diag}`.
 - Keep words and sentence punctuation outside the maths; leave bare numbers in running text as text; don't reword the prose.
-- Conversion status: done for all prose fields. New or edited prose should follow these conventions; the CSV/xlsx/sqlite/graphml exports still hold the older plain-Unicode text.
+- All prose fields are marked up; new or edited prose must follow these conventions.
 - When editing `atlas.json` programmatically, write it back with `json.dumps(..., ensure_ascii=False, indent=2)` to keep diffs minimal.
 
 ## Site architecture (`site/app.js`, one IIFE, no framework)
