@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A static, Wikipedia-style explorer for a curated "Mathematics Atlas" dataset: ~1,500 formulas/theorems linked by explained relationships, 26 recurring pattern hubs and 160 teaching metaphors. The user wants the site kept **clean and minimal**, and iterates on both the data and the site.
+A static, Wikipedia-style explorer for a curated "Mathematics Atlas" dataset: ~1,500 formulas/theorems linked by explained relationships, 31 recurring pattern hubs and 160 teaching metaphors. The user wants the site kept **clean and minimal**, and iterates on both the data and the site.
 
 ## Commands
 

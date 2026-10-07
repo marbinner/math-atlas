@@ -1,11 +1,11 @@
 {
   "formulas": 1484,
-  "patterns": 26,
+  "patterns": 31,
   "metaphors": 160,
-  "edges": 9098,
+  "edges": 9364,
   "sources": 393,
   "domains": 26,
-  "latexChecked": 1510,
+  "latexChecked": 1515,
   "connectedComponents": 1,
   "mathematicalConnectedComponents": 1,
   "prerequisiteCycles": 0,
@@ -16,7 +16,7 @@
     "derivation": 540,
     "equivalence": 74,
     "duality": 7,
-    "pattern": 3118,
+    "pattern": 3384,
     "prerequisite": 2609,
     "metaphor": 585
   },

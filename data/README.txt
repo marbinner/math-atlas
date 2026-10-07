@@ -3,9 +3,9 @@ Version 2.0, 6 October 2026
 
 CONTENTS
 1484 formula / definition / theorem / method / model entries
-26 recurring pattern hubs
+31 recurring pattern hubs
 160 metaphors with explicit concept mappings, structure and limits
-9098 explained links (mathematical relationships, prerequisites, pattern memberships and teaching metaphors)
+9364 explained links (mathematical relationships, prerequisites, pattern memberships and teaching metaphors)
 393 source references
 
 FORMATS
