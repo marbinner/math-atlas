@@ -8,8 +8,8 @@
     "counts": {
       "formulas": 1484,
       "patterns": 31,
-      "metaphors": 160,
-      "edges": 9364,
+      "metaphors": 166,
+      "edges": 9390,
       "sources": 393,
       "domains": 26
     },
@@ -50341,6 +50341,226 @@
         "inequalities-estimates"
       ],
       "sources": []
+    },
+    {
+      "id": "m-arrows-that-keep-heading",
+      "title": "Arrows that keep their heading",
+      "story": "Draw arrows in every direction on a rubber sheet, then stretch the sheet. Almost every arrow swings to a new heading, but a few only grow or shrink along their own line. Stretch the sheet the same way again and again, and every arrow swings toward the direction that grows fastest.",
+      "structure": "An eigenvector is a direction that a linear map sends to a multiple of itself; the eigenvalue is the stretch factor. Repeating the map amplifies each component by its own factor, so the component with the largest $|\\lambda|$ eventually dominates.",
+      "mappings": [
+        {
+          "formula": "eigenvalue",
+          "role": "The arrows that keep their heading are eigenvectors; how much each one stretches is $\\lambda$."
+        },
+        {
+          "formula": "power-iteration",
+          "role": "Stretching over and over, rescaling each time, swings any arrow toward the fastest-growing direction."
+        },
+        {
+          "formula": "stationary-distribution",
+          "role": "A distribution that one more step of the chain leaves unchanged is an arrow with stretch factor exactly 1."
+        },
+        {
+          "formula": "principal-component-analysis",
+          "role": "The direction along which the data cloud is most stretched is the top eigenvector of $\\Sigma$."
+        }
+      ],
+      "limits": "A rotation of the plane keeps no real arrow on its line: its eigenvalues are complex, encoding a turn as well as a stretch. A shear has too few such arrows to describe everything, and power iteration stalls when two directions grow equally fast.",
+      "question": "When a process is repeated many times, which shape survives, and how fast do the others fade?",
+      "patterns": [
+        "spectral-structure",
+        "fixed-points"
+      ],
+      "sources": [
+        "c-axler",
+        "ea-fnc-power",
+        "b-markov-book"
+      ]
+    },
+    {
+      "id": "m-fair-price-of-a-gamble",
+      "title": "The fair price of a gamble",
+      "story": "A ticket pays different amounts depending on how a game turns out. If you could buy it over and over, there is one price at which neither the buyer nor the seller drifts ahead in the long run. That price is the expectation.",
+      "structure": "Expectation weights each payoff by its probability and adds. Because it is linear, a complicated payoff can be split into simple tickets that are priced separately, even when the tickets depend on each other.",
+      "mappings": [
+        {
+          "formula": "expectation",
+          "role": "The fair price: payoffs weighted by their probabilities."
+        },
+        {
+          "formula": "indicator-expectation",
+          "role": "A ticket paying 1 if an event happens and 0 otherwise is worth exactly its probability."
+        },
+        {
+          "formula": "expectation-linearity",
+          "role": "A bundle of tickets costs the sum of their prices, even when their outcomes are linked."
+        },
+        {
+          "formula": "law-large-numbers",
+          "role": "Over many independent purchases, the average payout settles at the fair price."
+        },
+        {
+          "formula": "quantum-expectation",
+          "role": "Repeating a measurement on identically prepared systems, the average reading settles at $\\langle\\psi,A\\psi\\rangle$."
+        }
+      ],
+      "limits": "The long-run reading needs a finite mean: a Cauchy-distributed payoff has no fair price, and its running averages never settle. The fair price also ignores risk; a cautious buyer pays less than it, and a single play can land far from it.",
+      "question": "Can a complicated payoff be split into simple tickets whose prices are easy to find?",
+      "patterns": [
+        "averaging",
+        "linearity",
+        "randomness"
+      ],
+      "sources": [
+        "b-expectation",
+        "b-lln",
+        "er-quantum1"
+      ]
+    },
+    {
+      "id": "m-compound-interest-many-accounts",
+      "title": "Compound interest across linked accounts",
+      "story": "One account compounding continuously at rate $r$ grows by the factor $e^{rt}$. Now link several accounts so that money also flows between them at fixed rates. The rule that turns these instantaneous rates into the net transfer after time $t$ is a matrix exponential.",
+      "structure": "A constant linear rate rule $x'=Ax$ is solved by $x(t)=e^{tA}x_0$. Along eigenvector directions the accounts decouple and each grows like $e^{\\lambda t}$, and the total volume of balances changes by $e^{t\\operatorname{tr}A}$.",
+      "mappings": [
+        {
+          "formula": "matrix-exponential",
+          "role": "Converts the matrix of instantaneous rates into the net transfer after time $t$."
+        },
+        {
+          "formula": "linear-system-stability",
+          "role": "All balances eventually shrink exactly when every growth rate $\\operatorname{Re}\\lambda$ is negative."
+        },
+        {
+          "formula": "determinant-exponential",
+          "role": "The combined volume of balances scales by $e^{\\operatorname{tr}A}$, the sum of the individual growth rates compounded."
+        },
+        {
+          "formula": "ctmc-uniformization",
+          "role": "When the rates move probability between states, $e^{tQ}$ gives the transition probabilities after time $t$."
+        }
+      ],
+      "limits": "Money cannot be negative, but matrix entries can, so the picture is only literal for flows like probability. Two rate rules acting together are not the same as one and then the other: $e^{A+B}\\neq e^Ae^B$ unless $A$ and $B$ commute.",
+      "question": "If two flows act at once, when is that the same as running one after the other?",
+      "patterns": [
+        "exponential-log",
+        "composition",
+        "spectral-structure"
+      ],
+      "sources": [
+        "c-higham-exp",
+        "er-dynamics",
+        "c-axler"
+      ]
+    },
+    {
+      "id": "m-pins-and-falling-balls",
+      "title": "Balls falling through a board of pins",
+      "story": "Drop balls through a board of pins. Each pin nudges a ball left or right at random, and the balls pile up in bins at the bottom. Whatever the pins are like, the heap takes the shape of a bell, and a deeper board makes the bell wider.",
+      "structure": "A sum of many small independent nudges with finite variance has an approximately normal distribution, with variance equal to the sum of the nudges' variances. The same bell describes diffusion, where countless molecular kicks spread a drop of dye.",
+      "mappings": [
+        {
+          "formula": "normal-distribution",
+          "role": "The shape of the heap at the bottom of the board."
+        },
+        {
+          "formula": "central-limit-theorem",
+          "role": "Many small independent nudges add up to a bell, whatever each nudge looks like."
+        },
+        {
+          "formula": "brownian-motion",
+          "role": "The path of one ball as it falls: each stretch of the fall adds an independent normal displacement."
+        },
+        {
+          "formula": "heat-kernel",
+          "role": "A drop of dye in still water spreads into a Gaussian whose width grows like $\\sqrt{t}$."
+        },
+        {
+          "formula": "maximum-entropy-gaussian",
+          "role": "Knowing only how wide the heap is, the bell is the shape that assumes nothing more."
+        }
+      ],
+      "limits": "The nudges must be many, small and roughly independent, with finite variance. If one nudge dominates, or the nudges are heavy-tailed or strongly correlated, the heap takes a different shape.",
+      "question": "What must be true of the nudges for the heap to be a bell, and what shape appears when one nudge dominates?",
+      "patterns": [
+        "randomness",
+        "limits-convergence",
+        "accumulation"
+      ],
+      "sources": [
+        "b-distributions",
+        "b-clt",
+        "b-ito-formula"
+      ]
+    },
+    {
+      "id": "m-dashboard-predicts-the-road",
+      "title": "Predicting the road from the dashboard",
+      "story": "At one instant a car's dashboard shows its position, speed, acceleration and how fast the acceleration is changing. With only the speedometer you can guess where the car will be a moment later; each further reading improves the guess and lets it reach further ahead.",
+      "structure": "A Taylor polynomial uses the derivatives at one point to predict nearby values, with an error controlled by the next derivative. For an analytic function, all the readings together determine the function out to the radius of convergence.",
+      "mappings": [
+        {
+          "formula": "local-linear-approximation",
+          "role": "Speedometer only: a straight-line prediction, good for a very short time."
+        },
+        {
+          "formula": "taylor-polynomial",
+          "role": "Each further reading adds one correction term; the remainder bounds the error."
+        },
+        {
+          "formula": "taylor-series",
+          "role": "With every reading, the whole trip within the convergence radius is determined."
+        },
+        {
+          "formula": "hartman-grobman",
+          "role": "Near a hyperbolic equilibrium, the linear reading alone already predicts the qualitative shape of nearby trajectories."
+        }
+      ],
+      "limits": "Some smooth functions, such as $e^{-1/x^2}$ at $0$, have every reading equal to zero yet still move, so all the derivatives at one point do not always determine the function. Even for analytic functions the prediction horizon is limited by the nearest complex singularity.",
+      "question": "How far ahead can the readings at one moment be trusted, and what sets that horizon?",
+      "patterns": [
+        "local-linearization",
+        "limits-convergence"
+      ],
+      "sources": [
+        "a-lebl-real1",
+        "a-openstax-series",
+        "er-dynamics"
+      ]
+    },
+    {
+      "id": "m-clock-arithmetic",
+      "title": "Arithmetic on a clock face",
+      "story": "On a clock with $m$ hours, adding hours wraps around, so only the position of the hand matters, not how many full laps it has made. Two clocks with different numbers of hours, read together, can tell apart many more times than either clock alone.",
+      "structure": "Congruence modulo $m$ forgets whole multiples of $m$ while keeping addition and multiplication intact. Readings on clocks with coprime sizes combine into a single reading modulo their product.",
+      "mappings": [
+        {
+          "formula": "modular-congruence",
+          "role": "Two times are the same on the clock when they differ by whole laps: $m\\mid(a-b)$."
+        },
+        {
+          "formula": "homomorphism",
+          "role": "Reading the clock respects arithmetic: the reading of a sum is the sum of the readings."
+        },
+        {
+          "formula": "chinese-remainder-theorem",
+          "role": "Clocks of coprime sizes, read together, pin the time down modulo the product of their sizes."
+        },
+        {
+          "formula": "modular-inverse",
+          "role": "A step of size $a$ can be undone exactly when $a$ shares no factor with the number of hours."
+        }
+      ],
+      "limits": "The clock forgets how many laps have passed, so information about size and order is lost. Division works only for steps coprime to the dial, and clocks whose sizes share a factor give overlapping, not independent, information.",
+      "question": "What information survives when only the remainder is kept, and how many different clocks are needed to recover the rest?",
+      "patterns": [
+        "algebraic-structure",
+        "decomposition"
+      ],
+      "sources": [
+        "c-stein",
+        "c-group-iso"
+      ]
     }
   ],
   "edges": [
@@ -115891,6 +116111,188 @@
       "type": "pattern",
       "explanation": "Solutions modulo each pairwise coprime ideal $I_i$ glue to a unique solution modulo their intersection.",
       "id": "e-30852af44647139e"
+    },
+    {
+      "source": "eigenvalue",
+      "target": "m-arrows-that-keep-heading",
+      "type": "metaphor",
+      "explanation": "The arrows that keep their heading are eigenvectors; how much each one stretches is $\\lambda$.",
+      "id": "e-3f9135d37f24381e"
+    },
+    {
+      "source": "power-iteration",
+      "target": "m-arrows-that-keep-heading",
+      "type": "metaphor",
+      "explanation": "Stretching over and over, rescaling each time, swings any arrow toward the fastest-growing direction.",
+      "id": "e-fb6c47b339f7b7b2"
+    },
+    {
+      "source": "stationary-distribution",
+      "target": "m-arrows-that-keep-heading",
+      "type": "metaphor",
+      "explanation": "A distribution that one more step of the chain leaves unchanged is an arrow with stretch factor exactly 1.",
+      "id": "e-10b37a3cf1a527a1"
+    },
+    {
+      "source": "principal-component-analysis",
+      "target": "m-arrows-that-keep-heading",
+      "type": "metaphor",
+      "explanation": "The direction along which the data cloud is most stretched is the top eigenvector of $\\Sigma$.",
+      "id": "e-3652663433c206f8"
+    },
+    {
+      "source": "expectation",
+      "target": "m-fair-price-of-a-gamble",
+      "type": "metaphor",
+      "explanation": "The fair price: payoffs weighted by their probabilities.",
+      "id": "e-bb6db454e0575352"
+    },
+    {
+      "source": "indicator-expectation",
+      "target": "m-fair-price-of-a-gamble",
+      "type": "metaphor",
+      "explanation": "A ticket paying 1 if an event happens and 0 otherwise is worth exactly its probability.",
+      "id": "e-bd5fffea71585de2"
+    },
+    {
+      "source": "expectation-linearity",
+      "target": "m-fair-price-of-a-gamble",
+      "type": "metaphor",
+      "explanation": "A bundle of tickets costs the sum of their prices, even when their outcomes are linked.",
+      "id": "e-837a8698e04eae2c"
+    },
+    {
+      "source": "law-large-numbers",
+      "target": "m-fair-price-of-a-gamble",
+      "type": "metaphor",
+      "explanation": "Over many independent purchases, the average payout settles at the fair price.",
+      "id": "e-fff4d7995ed51d27"
+    },
+    {
+      "source": "quantum-expectation",
+      "target": "m-fair-price-of-a-gamble",
+      "type": "metaphor",
+      "explanation": "Repeating a measurement on identically prepared systems, the average reading settles at $\\langle\\psi,A\\psi\\rangle$.",
+      "id": "e-74409c92e4b24da8"
+    },
+    {
+      "source": "matrix-exponential",
+      "target": "m-compound-interest-many-accounts",
+      "type": "metaphor",
+      "explanation": "Converts the matrix of instantaneous rates into the net transfer after time $t$.",
+      "id": "e-f65321f79e85b345"
+    },
+    {
+      "source": "linear-system-stability",
+      "target": "m-compound-interest-many-accounts",
+      "type": "metaphor",
+      "explanation": "All balances eventually shrink exactly when every growth rate $\\operatorname{Re}\\lambda$ is negative.",
+      "id": "e-73940938767601ae"
+    },
+    {
+      "source": "determinant-exponential",
+      "target": "m-compound-interest-many-accounts",
+      "type": "metaphor",
+      "explanation": "The combined volume of balances scales by $e^{\\operatorname{tr}A}$, the sum of the individual growth rates compounded.",
+      "id": "e-82b91d5cacb8596c"
+    },
+    {
+      "source": "ctmc-uniformization",
+      "target": "m-compound-interest-many-accounts",
+      "type": "metaphor",
+      "explanation": "When the rates move probability between states, $e^{tQ}$ gives the transition probabilities after time $t$.",
+      "id": "e-9774331e4d3d4ee3"
+    },
+    {
+      "source": "normal-distribution",
+      "target": "m-pins-and-falling-balls",
+      "type": "metaphor",
+      "explanation": "The shape of the heap at the bottom of the board.",
+      "id": "e-c71090012198ab12"
+    },
+    {
+      "source": "central-limit-theorem",
+      "target": "m-pins-and-falling-balls",
+      "type": "metaphor",
+      "explanation": "Many small independent nudges add up to a bell, whatever each nudge looks like.",
+      "id": "e-06704f75d73abae2"
+    },
+    {
+      "source": "brownian-motion",
+      "target": "m-pins-and-falling-balls",
+      "type": "metaphor",
+      "explanation": "The path of one ball as it falls: each stretch of the fall adds an independent normal displacement.",
+      "id": "e-7bf5ca1d70e244b6"
+    },
+    {
+      "source": "heat-kernel",
+      "target": "m-pins-and-falling-balls",
+      "type": "metaphor",
+      "explanation": "A drop of dye in still water spreads into a Gaussian whose width grows like $\\sqrt{t}$.",
+      "id": "e-1f2f33f65904ecbf"
+    },
+    {
+      "source": "maximum-entropy-gaussian",
+      "target": "m-pins-and-falling-balls",
+      "type": "metaphor",
+      "explanation": "Knowing only how wide the heap is, the bell is the shape that assumes nothing more.",
+      "id": "e-c48aba727ccec00e"
+    },
+    {
+      "source": "local-linear-approximation",
+      "target": "m-dashboard-predicts-the-road",
+      "type": "metaphor",
+      "explanation": "Speedometer only: a straight-line prediction, good for a very short time.",
+      "id": "e-21ae5b6bba06307b"
+    },
+    {
+      "source": "taylor-polynomial",
+      "target": "m-dashboard-predicts-the-road",
+      "type": "metaphor",
+      "explanation": "Each further reading adds one correction term; the remainder bounds the error.",
+      "id": "e-d7b5767943dddb44"
+    },
+    {
+      "source": "taylor-series",
+      "target": "m-dashboard-predicts-the-road",
+      "type": "metaphor",
+      "explanation": "With every reading, the whole trip within the convergence radius is determined.",
+      "id": "e-8c2fe1614b612008"
+    },
+    {
+      "source": "hartman-grobman",
+      "target": "m-dashboard-predicts-the-road",
+      "type": "metaphor",
+      "explanation": "Near a hyperbolic equilibrium, the linear reading alone already predicts the qualitative shape of nearby trajectories.",
+      "id": "e-bc1f93e830f2611e"
+    },
+    {
+      "source": "modular-congruence",
+      "target": "m-clock-arithmetic",
+      "type": "metaphor",
+      "explanation": "Two times are the same on the clock when they differ by whole laps: $m\\mid(a-b)$.",
+      "id": "e-d4e718b0776ef69c"
+    },
+    {
+      "source": "homomorphism",
+      "target": "m-clock-arithmetic",
+      "type": "metaphor",
+      "explanation": "Reading the clock respects arithmetic: the reading of a sum is the sum of the readings.",
+      "id": "e-e8c8bc03a2525189"
+    },
+    {
+      "source": "chinese-remainder-theorem",
+      "target": "m-clock-arithmetic",
+      "type": "metaphor",
+      "explanation": "Clocks of coprime sizes, read together, pin the time down modulo the product of their sizes.",
+      "id": "e-aa638e579cd23407"
+    },
+    {
+      "source": "modular-inverse",
+      "target": "m-clock-arithmetic",
+      "type": "metaphor",
+      "explanation": "A step of size $a$ can be undone exactly when $a$ shares no factor with the number of hours.",
+      "id": "e-726e29a42eee6844"
     }
   ],
   "sources": [

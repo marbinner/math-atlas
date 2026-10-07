@@ -4,8 +4,8 @@ Version 2.1, 7 October 2026
 CONTENTS
 1484 formula / definition / theorem / method / model entries
 31 recurring pattern hubs
-160 metaphors with explicit concept mappings, structure and limits
-9364 explained links (mathematical relationships, prerequisites, pattern memberships and teaching metaphors)
+166 metaphors with explicit concept mappings, structure and limits
+9390 explained links (mathematical relationships, prerequisites, pattern memberships and teaching metaphors)
 393 source references
 
 atlas.json is the complete dataset. The explorer in site/ is generated from it
