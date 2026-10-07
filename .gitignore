@@ -4,3 +4,4 @@ claude_files/
 __pycache__/
 data/*.zip
 node_modules/
+.env
